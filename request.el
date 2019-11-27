@@ -394,7 +394,8 @@ Example::
                        (params nil)
                        (data nil)
                        (headers nil)
-                       (encoding 'utf-8)
+                       (encoding 'utf-8-unix)
+                       (decoding 'utf-8-unix)
                        (error nil)
                        (sync nil)
                        (response (make-request-response))
@@ -412,7 +413,8 @@ DATA    (string/alist)   data to be sent to the server
 FILES          (alist)   files to be sent to the server (see below)
 PARSER        (symbol)   a function that reads current buffer and return data
 HEADERS        (alist)   additional headers to send with the request
-ENCODING      (symbol)   encoding for request body (utf-8 by default)
+ENCODING      (symbol)   encoding for request body (utf-8-unix by default)
+DECODING      (symbol)   decoding for request response (utf-8-unix by default)
 SUCCESS     (function)   called on success
 ERROR       (function)   called on error
 COMPLETE    (function)   called on both success and error
@@ -569,6 +571,7 @@ and requests.request_ (Python).
   (setq settings (plist-put settings :url url))
   (setq settings (plist-put settings :response response))
   (setq settings (plist-put settings :encoding encoding))
+  (setq settings (plist-put settings :decoding decoding))
   (setf (request-response-settings response) settings)
   (setf (request-response-url      response) url)
   (setf (request-response--backend response) request-backend)
@@ -1017,7 +1020,7 @@ temporary file paths."
                        #'request-response--timeout-callback response))))
 
 (cl-defun request--curl (url &rest settings
-                             &key files timeout response encoding semaphore
+                             &key files timeout response encoding decoding semaphore
                              &allow-other-keys)
   "cURL-based request backend.
 
@@ -1052,6 +1055,7 @@ removed from the buffer before it is shown to the parser function.
     (request-log 'debug "request--curl: %s" (mapconcat 'identity command " "))
     (setf (request-response--buffer response) buffer)
     (process-put proc :request-response response)
+    (set-process-coding-system proc decoding encoding)
     (set-process-query-on-exit-flag proc nil)
     (set-process-sentinel proc 'request--curl-callback)
     (when semaphore
