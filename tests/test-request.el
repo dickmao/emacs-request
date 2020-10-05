@@ -211,6 +211,15 @@ See also:
    (should (equal (assoc-default 'path data) "some-path"))
    (should (equal (assoc-default 'method data) "GET"))))
 
+(request-deftest request-get-sync-callback-persists ()
+  (request-testing-with-response-slots
+      (request (request-testing-url "report/some-path")
+        :sync t :parser 'json-read :success (lambda (&rest _args) (sleep-for 6.5)))
+   (should done-p)
+   (should (equal status-code 200))
+   (should (equal (assoc-default 'path data) "some-path"))
+   (should (equal (assoc-default 'method data) "GET"))))
+
 
 ;;; POST
 
