@@ -1214,7 +1214,8 @@ START-URL is the URL requested."
   (let ((desc auto-revert-notify-watch-descriptor)
         (table (if (boundp 'auto-revert--buffers-by-watch-descriptor)
                    auto-revert--buffers-by-watch-descriptor
-                 auto-revert-notify-watch-descriptor-hash-list)))
+                 (when (boundp 'auto-revert-notify-watch-descriptor-hash-list)
+                   auto-revert-notify-watch-descriptor-hash-list))))
     (when desc
       (let ((buffers (delq (current-buffer) (gethash desc table))))
         (if buffers
@@ -1245,7 +1246,8 @@ START-URL is the URL requested."
           (cl-loop with iter = 0
                    until (or (>= iter maxiter) finished)
                    do (accept-process-output nil interval)
-                   unless (request--process-live-p proc)
+                   if (and (process-sentinel proc)
+                           (not (request--process-live-p proc)))
                      do (cl-incf iter)
                    end
                    finally (when (>= iter maxiter)
