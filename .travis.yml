@@ -56,5 +56,6 @@ before_install:
   - curl --version
 
 script:
+  - make
   - make test-install
   - make test
