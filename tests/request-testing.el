@@ -134,9 +134,12 @@ The symbols other than `response' is bound using `cl-symbol-macrolet'."
               request-testing-timeout
               (progn (ignore x) (setq timeout t))
               (deferred:try
-                (apply #'request-deferred testing-url args)
+                (deferred:$
+                  (deferred:next
+                    (lambda () (apply #'request-deferred testing-url args))))
                 :catch
                 (lambda (x) (setq err x)))))))
+    (ignore args)
     (cond (timeout (error "request-testing-sync: %s timed out" testing-url))
           (err (error "request-testing-sync: %s %s" testing-url err))
           (t result))))
